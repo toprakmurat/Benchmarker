@@ -1,6 +1,7 @@
-#include "Tests.hpp"
 #include <cstdlib>
 #include <functional>
+
+#include "Tests.hpp"
 
 IntegerArithmeticTest::IntegerArithmeticTest() 
 	: BenchmarkTest("Integer Arithmetic Test") {}

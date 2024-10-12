@@ -1,8 +1,9 @@
-#include "BenchmarkTest.hpp"
-#include "Logger.hpp"
 #include <vector>
 #include <thread>
 #include <atomic>
+
+#include "BenchmarkTest.hpp"
+#include "Logger.hpp"
 
 BenchmarkTest::BenchmarkTest(const std::string& testName) {
 	m_Name = testName;

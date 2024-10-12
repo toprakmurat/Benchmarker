@@ -1,5 +1,3 @@
-#include "System.hpp"
-
 #ifdef _WIN32
 #include <windows.h>
 #include <intrin.h>
@@ -8,6 +6,8 @@
 #include <sys/utsname.h>
 #include <fstream>
 #endif
+
+#include "System.hpp"
 
 SystemInfo SystemDetector::GetSysInfo() {
 	SystemInfo info;

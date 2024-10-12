@@ -1,9 +1,10 @@
-#include "Logger.hpp"
 #include <iostream>
 #include <chrono>
 #include <sstream>
 #include <iomanip>
 #include <ctime>
+
+#include "Logger.hpp"
 
 Logger::Logger(const std::string& filename, LogLevel level = LogLevel::INFO)
 	: m_LogFile(filename, std::ios::app), m_CurrentLevel(level) {
