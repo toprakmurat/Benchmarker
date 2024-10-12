@@ -34,8 +34,8 @@ void CPUBenchmark::logSystemInfo() {
 	g_logger->Info("System Information: ");
 	g_logger->Info("Operating System: " + m_SysInfo.operatingSystem);
 	g_logger->Info("CPU Model: " + m_SysInfo.cpuModel);
-	g_logger->Info("Number of CPU Cores: " + m_SysInfo.numCores);
-	g_logger->Info("Total Physical RAM: " + std::to_string(m_SysInfo.totalRAM / (1024 * 1024 * 1024)) + " GB");
+	g_logger->Info("Number of CPU Cores: " + std::to_string(m_SysInfo.numCores));
+	g_logger->Info("Total Physical RAM: " + std::to_string(m_SysInfo.totalRAM / (1024.0 * 1024.0 * 1024.0)) + " GB");
 }
 
 

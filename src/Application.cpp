@@ -27,7 +27,7 @@ int main(int argc, char* argv[]) {
 				if (level == "debug") logLevel = LogLevel::DEBUG;
 				else if (level == "info") logLevel = LogLevel::INFO;
 				else if (level == "warning") logLevel = LogLevel::WARNING;
-				else if (level == "error") logLevel = LogLevel::ERROR;
+				else if (level == "fatal" || level == "error") logLevel = LogLevel::FATAL;
 			}
 		}
 		
