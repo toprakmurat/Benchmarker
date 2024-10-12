@@ -1,5 +1,5 @@
 #pragma once
-#include "BenchmarkTest.h"
+#include "BenchmarkTest.hpp"
 
 class IntegerArithmeticTest : public BenchmarkTest {
 public:

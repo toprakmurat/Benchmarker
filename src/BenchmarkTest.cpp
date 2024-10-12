@@ -1,4 +1,5 @@
-#include "BenchmarkTest.h"
+#include "BenchmarkTest.hpp"
+#include "Logger.hpp"
 #include <vector>
 #include <thread>
 #include <atomic>
@@ -9,19 +10,25 @@ BenchmarkTest::BenchmarkTest(const std::string& testName) {
 }
 
 void BenchmarkTest::RunMultiThreaded(int numThreads) {
+	g_logger->Info("Starting multi-threaded run of " + m_Name + " with " + std::to_string(numThreads) + " threads");
+
 	std::vector<std::thread> threads;
 	std::atomic<int> counter(0);
 
 	for (int i = 0; i < numThreads; ++i) {
-		threads.emplace_back([this, &counter, numThreads]() {
+		threads.emplace_back([this, &counter, numThreads, i]() {
+			g_logger->Debug("Thread " + std::to_string(i) + " started for " + m_Name);
 			while (counter.fetch_add(1) < BENCHMARK_ITERATION_COUNT) {
 				this->RunSingleIteration();
 			}
+			g_logger->Debug("Thread " + std::to_string(i) + " finished for " + m_Name);
 		});
 	}
 	for (auto& thread : threads) {
 		thread.join();
 	}
+	
+	g_logger->Info("Completed multi-threaded run of " + m_Name);
 }
 
 std::string BenchmarkTest::GetName() const {

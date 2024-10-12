@@ -2,6 +2,11 @@
 #include <fstream>
 #include <mutex>
 #include <string>
+#include <memory>
+
+/* Declare global logger instance */
+class Logger;
+extern std::unique_ptr<Logger> g_logger;
 
 enum class LogLevel {
 	DEBUG,

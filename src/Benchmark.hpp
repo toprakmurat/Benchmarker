@@ -5,7 +5,8 @@
 #include <fstream>
 #include <memory>
 
-#include "BenchmarkTest.h"
+#include "BenchmarkTest.hpp"
+#include "System.hpp"
 
 // Helper function template to measure execution time of any function 
 template<typename Func, typename... Args>
@@ -27,6 +28,9 @@ private:
 	bool m_UseMultiThreading;
 	int m_ThreadCount;
 	std::ofstream m_ReportFile;
+	SystemInfo m_SysInfo;
+
+	void logSystemInfo();
 
 public:
 	CPUBenchmark(bool multiThreaded = true, int threads = BENCHMARK_THREAD_COUNT);

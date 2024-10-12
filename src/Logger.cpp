@@ -1,9 +1,16 @@
-#include "Logger.h"
+#include "Logger.hpp"
 #include <iostream>
 #include <chrono>
 #include <sstream>
 #include <iomanip>
 #include <ctime>
+
+Logger::Logger(const std::string& filename, LogLevel level = LogLevel::INFO)
+	: m_LogFile(filename, std::ios::app), m_CurrentLevel(level) {
+	if (!m_LogFile.is_open()) {
+		throw std::runtime_error("Unable to open log file: " + filename);
+	}
+}
 
 std::string Logger::GetTimestamp() {
 	auto now = std::chrono::system_clock::now();
@@ -33,12 +40,6 @@ std::string Logger::LogLevelToString(LogLevel level) {
 	}
 }
 
-Logger::Logger(const std::string& filename, LogLevel level = LogLevel::INFO)
-	: m_LogFile(filename, std::ios::app), m_CurrentLevel(level) {
-	if (!m_LogFile.is_open()) {
-		throw std::runtime_error("Unable to open log file: " + filename);
-	}
-}
 
 void Logger::SetLogLevel(LogLevel level) {
 	m_CurrentLevel = level;
