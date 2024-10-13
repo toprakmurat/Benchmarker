@@ -53,7 +53,7 @@ std::string SystemDetector::GetOS() {
 	char str[256];
 	size_t size = sizeof(str);
 	if (sysctlbyname("kern.osrelease", str, &size, NULL, 0) == -1) {
-		g_logger->Error("Failed to get OS version for macOS");
+		LOG_ERROR("Failed to get OS version for macOS");
 		return "macOS";
 	}
 	
@@ -64,7 +64,7 @@ std::string SystemDetector::GetOS() {
 #elif defined(__linux__)
 	struct utsname unameData;
 	if (uname(&unameData) == -1) {
-		g_logger->Error("Failed to get OS information for linux");
+		LOG_ERROR("Failed to get OS information for linux");
 		return "linux";
 	}
 	return std::string(unameData.sysname) + " " + unameData.release;
@@ -79,7 +79,7 @@ std::string SystemDetector::GetCPUModel() {
 	unsigned int nExIds = cpuInfo[0];
 
 	if (nExIds < 0x80000004) {
-		g_logger->Error("CPUID not supported");
+		LOG_ERROR("CPUID not supported");
 	}
 
 	for (unsigned int i = CPUID_BRAND_STRING_START; i <= CPUID_BRAND_STRING_END; ++i) {
@@ -93,14 +93,14 @@ std::string SystemDetector::GetCPUModel() {
 	char buffer[1024];
 	size_t size = sizeof(buffer);
 	if (sysctlbyname("machdep.cpu.brand_string", &buffer, &size, nullptr, 0) < 0) {
-		g_logger->Error("Failed to get CPU model");
+		LOG_ERROR("Failed to get CPU model");
 	}
 	return std::string(buffer);
 
 #elif defined(__linux__)
 	std::ifstream cpuinfo("/proc/cpuinfo");
 	if (!cpuinfo) {
-		g_logger->Error("Failed to open /proc/cpuinfo");
+		LOG_ERROR("Failed to open /proc/cpuinfo");
 	}
 
 	std::string line;
@@ -112,7 +112,7 @@ std::string SystemDetector::GetCPUModel() {
 			}
 		}
 	}
-	g_logger->Error("CPU model information not found");
+	LOG_ERROR("CPU model information not found");
 #endif
 }
 
@@ -121,14 +121,14 @@ int SystemDetector::GetNumCores() {
 	SYSTEM_INFO sysInfo;
 	GetSystemInfo(&sysInfo);
 	if (sysInfo.dwNumberOfProcessors == 0) {
-		g_logger->Error("Failed to retrieve number of processors");
+		LOG_ERROR("Failed to retrieve number of processors");
 	}
 	return static_cast<int>(sysInfo.dwNumberOfProcessors);
 
 #elif defined(__APPLE__) || defined(__linux__)
 	long nprocs = sysconf(_SC_NPROCESSORS_ONLN);
 	if (n_procs < 1) {
-		g_logger->Error("Failed to retrieve number of processors");
+		LOG_ERROR("Failed to retrieve number of processors");
 	}
 	return static_cast<int>(nprocs);
 #endif
@@ -139,7 +139,7 @@ int64_t SystemDetector::GetTotalPhysRAM() {
 	MEMORYSTATUSEX memInfo;
 	memInfo.dwLength = sizeof(MEMORYSTATUSEX);
 	if (GlobalMemoryStatusEx(&memInfo) == 0) {
-		g_logger->Error("Failed to get memory information");
+		LOG_ERROR("Failed to get memory information");
 		return -1;
 	}
 	return static_cast<uint64_t>(memInfo.ullTotalPhys);
@@ -149,7 +149,7 @@ int64_t SystemDetector::GetTotalPhysRAM() {
 	uint64_t ram = 0;
 	size_t len = sizeof(ram);
 	if (sysctl(mib, 2, &ram, &len, NULL, 0) == -1) {
-		g_logger->Error("Failed to get total physical RAM");
+		LOG_ERROR("Failed to get total physical RAM");
 		return -1;
 	}
 	return ram;
@@ -163,7 +163,7 @@ int64_t SystemDetector::GetTotalPhysRAM() {
 			return ram * 1024;  // Convert from KB to bytes
 		}
 	}
-	g_logger->Error("Could not find MemTotal in /proc/meminfo");
+	LOG_ERROR("Could not find MemTotal in /proc/meminfo");
 	return 0;
 #endif
 }

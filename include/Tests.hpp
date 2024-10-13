@@ -9,7 +9,7 @@ public:
 	void RunSingleIteration() override;
 
 private:
-	constexpr static size_t ITERATION_COUNT = 100'000;
+	constexpr static size_t ITERATION_COUNT = 1'000;
 	
 	constexpr static int64_t MULTIPLIER = 1'103'515'245;
 	constexpr static int64_t INCREMENT = 12345;

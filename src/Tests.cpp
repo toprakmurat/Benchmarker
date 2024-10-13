@@ -20,7 +20,7 @@ void IntegerArithmeticTest::Run() {
 	}
 	
 	if (result == 0) {
-		g_logger->Error("Integer arithmetic test result is 0");
+		LOG_ERROR("Integer arithmetic test result is 0");
 		throw BenchmarkException("Unexpected result in Integer Arithmetic Test");
 	}
 }

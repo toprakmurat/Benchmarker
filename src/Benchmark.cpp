@@ -21,34 +21,34 @@ CPUBenchmark::CPUBenchmark(bool multiThreaded, int threads)
 		
 		m_ReportFile << "Test Name,Score,Duration (ms)" << std::endl;
 
-		g_logger->Info("CPUBenchmark initialized with " + std::to_string(m_ThreadCount) + " threads");
+		LOG_INFO("CPUBenchmark initialized with " + std::to_string(m_ThreadCount) + " threads");
 		logSystemInfo();
 	}
 
 CPUBenchmark::~CPUBenchmark() {
 		m_ReportFile.close();
-		g_logger->Info("CPUBenchmark destroyed, report file closed");
+		LOG_INFO("CPUBenchmark destroyed, report file closed");
 }
 
 void CPUBenchmark::logSystemInfo() {
-	g_logger->Info("System Information: ");
-	g_logger->Info("Operating System: " + m_SysInfo.operatingSystem);
-	g_logger->Info("CPU Model: " + m_SysInfo.cpuModel);
-	g_logger->Info("Number of CPU Cores: " + std::to_string(m_SysInfo.numCores));
-	g_logger->Info("Total Physical RAM: " + std::to_string(m_SysInfo.totalRAM / (1024.0 * 1024.0 * 1024.0)) + " GB");
+	LOG_INFO("System Information: ");
+	LOG_INFO("Operating System: " + m_SysInfo.operatingSystem);
+	LOG_INFO("CPU Model: " + m_SysInfo.cpuModel);
+	LOG_INFO("Number of CPU Cores: " + std::to_string(m_SysInfo.numCores));
+	LOG_INFO("Total Physical RAM: " + std::to_string(m_SysInfo.totalRAM / (1024.0 * 1024.0 * 1024.0)) + " GB");
 }
 
 
 void CPUBenchmark::AddTest(std::unique_ptr<BenchmarkTest> test) {
 	m_Tests.push_back(std::move(test));
-	g_logger->Info("Added test: " + m_Tests.back()->GetName());
+	LOG_INFO("Added test: " + m_Tests.back()->GetName());
 }
 
 void CPUBenchmark::RunAllTests() {
-	g_logger->Info("Starting all benchmark tests");
+	LOG_INFO("Starting all benchmark tests");
 	for (const auto& test : m_Tests) {
 		try {
-			g_logger->Info("Running test: " + test->GetName());
+			LOG_INFO("Running test: " + test->GetName());
 
 			std::chrono::milliseconds duration;
 			if (m_UseMultiThreading)
@@ -59,8 +59,8 @@ void CPUBenchmark::RunAllTests() {
 			benchmark_float_type score = BENCHMARK_ITERATION_COUNT / static_cast<benchmark_float_type>(duration.count());
 			test->SetScore(score);
 
-			g_logger->Info(test->GetName() + " completed in " + std::to_string(duration.count()) + " ms");
-			g_logger->Info(test->GetName() + "'s score: " + std::to_string(score) + " iterations/ms");
+			LOG_INFO(test->GetName() + " completed in " + std::to_string(duration.count()) + " ms");
+			LOG_INFO(test->GetName() + "'s score: " + std::to_string(score) + " iterations/ms");
 		
 			m_ReportFile << test->GetName() << "," << score << "," << duration.count() << std::endl;
 		}
@@ -71,5 +71,5 @@ void CPUBenchmark::RunAllTests() {
 			std::cerr << "Unexpected error in test " << test->GetName() << ": " << e.what() << std::endl;
 		}
 	}
-	g_logger->Info("All benchmark tests completed");
+	LOG_INFO("All benchmark tests completed");
 }

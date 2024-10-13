@@ -29,7 +29,7 @@ public:
 	virtual void Run() = 0;
 	virtual void RunMultiThreaded(int numThreads);
 	virtual void RunSingleIteration() = 0;
-	
+
 	std::string GetName() const;
 	void SetScore(benchmark_float_type score);
 	benchmark_float_type GetScore() const;

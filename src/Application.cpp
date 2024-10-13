@@ -32,8 +32,9 @@ int main(int argc, char* argv[]) {
 		}
 		
 		// Define global logger instance
-		g_logger = std::make_unique<Logger>("benchmark.log", logLevel);
-		g_logger->Info("CPU Benchmark tool started");
+		g_logger = std::make_unique<Logger>(DEFAULT_FILENAME, logLevel, 
+			MAX_FILE_SIZE, MAX_BUFFER_SIZE, std::chrono::seconds(5));
+		LOG_INFO("CPU Benchmark tool started");
 
 		CPUBenchmark benchmark(useMultiThreading, threadCount);
 		
@@ -43,7 +44,7 @@ int main(int argc, char* argv[]) {
 
 		benchmark.RunAllTests();
 
-		g_logger->Info("CPU Benchmark tool finished successfully");
+		LOG_INFO("CPU Benchmark tool finished successfully");
 	}
 	catch (const std::exception& e) {
 		std::cerr << "Fatal error: " << e.what() << std::endl;

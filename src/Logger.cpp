@@ -3,14 +3,34 @@
 #include <sstream>
 #include <iomanip>
 #include <ctime>
+#include <vector>
+#include <filesystem>
+#include <thread>
 
 #include "Logger.hpp"
 
-Logger::Logger(const std::string& filename, LogLevel level = LogLevel::INFO)
-	: m_LogFile(filename, std::ios::app), m_CurrentLevel(level) {
-	if (!m_LogFile.is_open()) {
-		throw std::runtime_error("Unable to open log file: " + filename);
+Logger::Logger(
+	const std::string& filename = DEFAULT_FILENAME,
+	LogLevel level = LogLevel::INFO, 
+	size_t maxFileSize = MAX_FILE_SIZE, 
+	size_t maxBufferSize = MAX_BUFFER_SIZE,
+	std::chrono::milliseconds flushInterval = std::chrono::seconds(5))
+	: m_Filename(filename), 
+	m_CurrentLevel(level), 
+	m_MaxFileSize(maxFileSize), 
+	m_MaxBufferSize(maxBufferSize), 
+	m_FlushInterval(flushInterval)
+{
+	OpenLogFile();
+	m_FlushThread = std::thread(&Logger::FlushThreadFunction, this);
+}
+
+Logger::~Logger() {
+	m_ShouldExit = true;
+	if (m_FlushThread.joinable()) {
+		m_FlushThread.join();
 	}
+	FlushBuffer();
 }
 
 std::string Logger::GetTimestamp() {
@@ -28,7 +48,7 @@ std::string Logger::GetTimestamp() {
 	std::stringstream ss;
 	ss << std::put_time(&tm, "%Y-%m-%d %X");
 	return ss.str();
-}	
+}
 
 // TODO: Include Topname library to achieve the same functionality
 std::string Logger::LogLevelToString(LogLevel level) {
@@ -41,6 +61,48 @@ std::string Logger::LogLevelToString(LogLevel level) {
 	}
 }
 
+void Logger::OpenLogFile() {
+	m_LogFile.open(m_Filename, std::ios::app);
+	if (!m_LogFile.is_open()) {
+		throw std::runtime_error("Unable to open log file: " + m_Filename);
+	}
+}
+
+void Logger::WriteToFile(const std::string& message) {
+	m_LogFile << message << std::endl;
+	CheckRotation();
+}
+
+void Logger::CheckRotation() {
+	if (std::filesystem::file_size(m_Filename) >= m_MaxFileSize) {
+		m_LogFile.close();
+		std::string newFilename = m_Filename + "." + GetTimestamp();
+		std::filesystem::rename(m_Filename, newFilename);
+		OpenLogFile();
+	}
+}
+
+void Logger::FlushThreadFunction() {
+	while (!m_ShouldExit) {
+		std::this_thread::sleep_for(m_FlushInterval);
+		FlushBuffer();
+	}
+}
+
+void Logger::SetFlushInterval(std::chrono::milliseconds interval) {
+	std::lock_guard<std::mutex> lock(m_LogMutex);
+	m_FlushInterval = interval;
+}
+
+void Logger::FlushBuffer() {
+	std::lock_guard<std::mutex> lock(m_LogMutex);
+	for (const auto& message : m_Buffer) {
+		WriteToFile(message);
+	}
+	m_Buffer.clear();
+	m_LogFile.flush();  // instantly write to the disk
+}
+
 
 void Logger::SetLogLevel(LogLevel level) {
 	m_CurrentLevel = level;
@@ -50,8 +112,16 @@ void Logger::Log(LogLevel level, const std::string& message) {
 	if (level >= m_CurrentLevel) {
 		std::lock_guard<std::mutex> lock(m_LogMutex);
 		std::string logMessage = GetTimestamp() + " [" + LogLevelToString(level) + "] " + message;
-		m_LogFile << logMessage << std::endl;
-		std::cout << logMessage << std::endl;
+		
+		m_Buffer.push_back(logMessage);
+
+		// If buffer is full, flush oldest entry to file
+		while (m_Buffer.size() > m_MaxBufferSize) {
+			WriteToFile(m_Buffer.front());
+			m_Buffer.pop_front();
+		}
+
+		std::cout << logMessage << std::endl;  // still print to console immediately
 	}
 }
 
