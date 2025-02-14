@@ -6,24 +6,27 @@
 #include "Tests.hpp"
 #include "Logger.hpp"
 
-CPUBenchmark::CPUBenchmark(bool multiThreaded, int threads)
-	: m_UseMultiThreading(multiThreaded), m_ThreadCount(threads) {
-		m_SysInfo = SystemDetector::GetSysInfo();
-		m_ReportFile.open("benchmark_report.csv");
+CPUBenchmark::CPUBenchmark(int numThreads) : m_ThreadCount(numThreads) {
+	m_UseMultiThreading = m_ThreadCount > 1;
 
-		m_ReportFile << "Operating System, CPU Model, Num of Cores, Total Phys RAM (GB)" << std::endl;
-		m_ReportFile << m_SysInfo.operatingSystem << ","
-			<< m_SysInfo.cpuModel << ","
-			<< m_SysInfo.numCores << ","
-			<< std::fixed << std::setprecision(2) << (m_SysInfo.totalRAM / (1024.0 * 1024.0 * 1024.0)) << std::endl;
-		
-		m_ReportFile << std::endl;
-		
-		m_ReportFile << "Test Name,Score,Duration (ms)" << std::endl;
+	m_SysInfo = SystemDetector::GetSysInfo();
+	m_ReportFile.open("benchmark_report.csv");
 
-		LOG_INFO("CPUBenchmark initialized with " + std::to_string(m_ThreadCount) + " threads");
-		logSystemInfo();
-	}
+	m_ReportFile << "Operating System, CPU Model, Num of Cores, Total Phys RAM (GB)" << std::endl;
+	m_ReportFile << m_SysInfo.operatingSystem << ","
+		<< m_SysInfo.cpuModel << ","
+		<< m_SysInfo.numCores << ","
+		<< std::fixed << std::setprecision(2) << (m_SysInfo.totalRAM / (1024.0 * 1024.0 * 1024.0)) << std::endl;
+		
+	m_ReportFile << std::endl;
+		
+	m_ReportFile << "Test Name,Score,Duration (ms)" << std::endl;
+
+	LOG_INFO("CPUBenchmark initialized with " + std::to_string(m_ThreadCount) + " threads");
+	logSystemInfo();
+
+	createTestsMap();
+}
 
 CPUBenchmark::~CPUBenchmark() {
 		m_ReportFile.close();
@@ -38,10 +41,26 @@ void CPUBenchmark::logSystemInfo() {
 	LOG_INFO("Total Physical RAM: " + std::to_string(m_SysInfo.totalRAM / (1024.0 * 1024.0 * 1024.0)) + " GB");
 }
 
+void CPUBenchmark::createTestsMap()
+{
+	m_TestsMap.emplace("matrix_multiplication_test", std::make_unique<MatrixMultiplicationTest>());
+	m_TestsMap.emplace("integer_arithmetic_test", std::make_unique<IntegerArithmeticTest>());
+	m_TestsMap.emplace("floating_point_test", std::make_unique<FloatingPointTest>());
+	m_TestsMap.emplace("prime_calculation_test", std::make_unique<PrimeTest>());
+}
+
 
 void CPUBenchmark::AddTest(std::unique_ptr<BenchmarkTest> test) {
 	m_Tests.push_back(std::move(test));
 	LOG_INFO("Added test: " + m_Tests.back()->GetName());
+}
+
+std::unique_ptr<BenchmarkTest> CPUBenchmark::FindTest(const std::string& testname)
+{
+	if (m_TestsMap.find(testname) != m_TestsMap.end()) {
+		return std::move(m_TestsMap[testname]);
+	}
+	return nullptr;
 }
 
 void CPUBenchmark::RunAllTests() {

@@ -10,11 +10,11 @@
 #include "Logger.hpp"
 
 Logger::Logger(
-	const std::string& filename = DEFAULT_FILENAME,
-	LogLevel level = LogLevel::INFO, 
-	size_t maxFileSize = MAX_FILE_SIZE, 
-	size_t maxBufferSize = MAX_BUFFER_SIZE,
-	std::chrono::milliseconds flushInterval = std::chrono::seconds(5))
+	const std::string& filename,
+	LogLevel level, 
+	size_t maxFileSize, 
+	size_t maxBufferSize,
+	std::chrono::milliseconds flushInterval)
 	: m_Filename(filename), 
 	m_CurrentLevel(level), 
 	m_MaxFileSize(maxFileSize), 
@@ -27,6 +27,8 @@ Logger::Logger(
 
 Logger::~Logger() {
 	m_ShouldExit = true;
+	
+	/* Wait for the thread to finish its job */
 	if (m_FlushThread.joinable()) {
 		m_FlushThread.join();
 	}
@@ -61,7 +63,17 @@ std::string Logger::LogLevelToString(LogLevel level) {
 	}
 }
 
+LogLevel Logger::StringToLogLevel(const std::string& levelStr)
+{
+	if (levelStr == "DEBUG")		return LogLevel::DEBUG;
+	else if (levelStr == "INFO")	return LogLevel::INFO;
+	else if (levelStr == "WARNING")	return LogLevel::WARNING;
+	else if (levelStr == "FATAL")	return LogLevel::FATAL;
+	else							return LogLevel::INFO; // Default
+}
+
 void Logger::OpenLogFile() {
+	/* Opens the specified log file in append mode */
 	m_LogFile.open(m_Filename, std::ios::app);
 	if (!m_LogFile.is_open()) {
 		throw std::runtime_error("Unable to open log file: " + m_Filename);
@@ -89,6 +101,7 @@ void Logger::FlushThreadFunction() {
 	}
 }
 
+
 void Logger::SetFlushInterval(std::chrono::milliseconds interval) {
 	std::lock_guard<std::mutex> lock(m_LogMutex);
 	m_FlushInterval = interval;
@@ -96,11 +109,22 @@ void Logger::SetFlushInterval(std::chrono::milliseconds interval) {
 
 void Logger::FlushBuffer() {
 	std::lock_guard<std::mutex> lock(m_LogMutex);
+	
+	/*	To minimize the number of I/O operations, save them to a string stream
+	*	However, this approach comes with potential drawbacks:
+	*	- Increased memory usage
+	*	- File rotation overhead
+	*/
+	std::ostringstream tempMsgBuffer;
 	for (const auto& message : m_Buffer) {
-		WriteToFile(message);
+		tempMsgBuffer << message << '\n';
 	}
+
+	m_LogFile << tempMsgBuffer.str();
+	m_LogFile.flush();  // Write to the disk
 	m_Buffer.clear();
-	m_LogFile.flush();  // instantly write to the disk
+
+	CheckRotation();
 }
 
 

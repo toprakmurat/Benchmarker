@@ -1,46 +1,45 @@
 #include "Benchmark.hpp"
 #include "BenchmarkTest.hpp"
 #include "Logger.hpp"
+#include "Parser.hpp"
 #include "System.hpp"
 #include "Tests.hpp"
+
+/* JSON Parsing */
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
 
 // Global logger
 std::unique_ptr<Logger> g_logger;
 
-int main(int argc, char* argv[]) {
-	try {
-		bool useMultiThreading = true;
-		int threadCount = BENCHMARK_THREAD_COUNT;
-		LogLevel logLevel = LogLevel::INFO;
 
-		/* TODO: Argument Parsing */
-		for (int i = 1; i < argc; ++i) {
-			std::string arg = argv[i];
-			if (arg == "--single-threaded") {
-				useMultiThreading = false;
-			} 
-			else if (arg == "--threads" && i + 1 < argc) {
-				threadCount = std::stoi(argv[++i]);
-			}
-			else if (arg == "--log-level" && i + 1 < argc) {
-				std::string level = argv[++i];
-				if (level == "debug") logLevel = LogLevel::DEBUG;
-				else if (level == "info") logLevel = LogLevel::INFO;
-				else if (level == "warning") logLevel = LogLevel::WARNING;
-				else if (level == "fatal" || level == "error") logLevel = LogLevel::FATAL;
-			}
-		}
+int main(int argc, char* argv[]) {
+	const std::string config_path = "config/config.json";
+
+	try {
+		// Parse command line arguments and overwrite config file
+		ArgumentParser arg_parser(argc, argv, config_path);
 		
 		// Define global logger instance
-		g_logger = std::make_unique<Logger>(DEFAULT_FILENAME, logLevel, 
-			MAX_FILE_SIZE, MAX_BUFFER_SIZE, std::chrono::seconds(5));
+		LogLevel current_level = Logger::StringToLogLevel(arg_parser.log_level());
+		g_logger = std::make_unique<Logger>(
+			arg_parser.output_file(),
+			current_level,
+			MAX_FILE_SIZE,
+			MAX_BUFFER_SIZE,
+			std::chrono::seconds(5)
+		);
+
 		LOG_INFO("CPU Benchmark tool started");
 
-		CPUBenchmark benchmark(useMultiThreading, threadCount);
+		CPUBenchmark benchmark(arg_parser.threads());
 		
-		benchmark.AddTest(std::make_unique<IntegerArithmeticTest>());
-		benchmark.AddTest(std::make_unique<FloatingPointTest>());
-		benchmark.AddTest(std::make_unique<PrimeTest>());
+		std::vector<std::string> avail_testnames = arg_parser.GetTestNames();
+		for (const std::string& testname : avail_testnames) {
+			std::unique_ptr<BenchmarkTest> test = benchmark.FindTest(testname);
+			if (test != nullptr)
+				benchmark.AddTest(std::move(test));
+		}
 
 		benchmark.RunAllTests();
 

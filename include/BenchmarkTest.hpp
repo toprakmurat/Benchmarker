@@ -21,6 +21,7 @@ class BenchmarkTest {
 protected:
 	std::string m_Name;
 	benchmark_float_type m_Score = 0.0;
+	int m_IterationCount = BENCHMARK_ITERATION_COUNT;
 
 public:
 	BenchmarkTest(const std::string& testName);

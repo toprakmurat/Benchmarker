@@ -1,0 +1,24 @@
+{
+  "verbose": true,
+  "threads": 4,
+  "output_file": "benchmark.log",
+  "log_level": "INFO",
+  "benchmarks": [
+    {
+      "name": "matrix_multiplication_test",
+      "enabled": true
+    },
+    {
+      "name": "integer_arithmetic_test",
+      "enabled": true
+    },
+    {
+      "name": "floating_point_test",
+      "enabled": true
+    },
+    {
+      "name": "prime_calculation_test",
+      "enabled": true
+    }
+  ]
+}

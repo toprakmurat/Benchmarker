@@ -1,5 +1,36 @@
 #pragma once
+#include <vector>
+
 #include "BenchmarkTest.hpp"
+#include "System.hpp"
+
+class MatrixMultiplicationTest : public BenchmarkTest {
+public:
+	MatrixMultiplicationTest();
+
+	void Run() override;
+	void RunMultiThreaded(int numThreads) override;
+	void RunSingleIteration() override;
+
+private:
+	void _InitializeMatrix(std::vector<std::vector<float>>& m);
+
+	void _BasicMultiplicationSingleThread(const std::vector<std::vector<float>>& a,
+								          const std::vector<std::vector<float>>& b,
+			                              std::vector<std::vector<float>>& c,
+		                                  size_t startRow, size_t endRow);
+	void _BasicMultiplicationMultiThread(const std::vector<std::vector<float>>& a,
+			                             const std::vector<std::vector<float>>& b,
+			                             std::vector<std::vector<float>>& c);
+
+	void _AVX2MultiplicationSingleThread(const std::vector<std::vector<float>>& a,
+			                             const std::vector<std::vector<float>>& b,
+			                             std::vector<std::vector<float>>& c,
+		                                 size_t startRow, size_t endRow);
+	void _AVX2MultiplicationMultiThread(const std::vector<std::vector<float>>& a,
+			                            const std::vector<std::vector<float>>& b,
+			                            std::vector<std::vector<float>>& c);
+};
 
 class IntegerArithmeticTest : public BenchmarkTest {
 public:

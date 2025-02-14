@@ -4,6 +4,7 @@
 #include <vector>
 #include <fstream>
 #include <memory>
+#include <unordered_map>
 
 #include "BenchmarkTest.hpp"
 #include "System.hpp"
@@ -24,18 +25,22 @@ std::chrono::milliseconds measureExecTime(Func&& func, Args&&... args) {
 
 class CPUBenchmark {
 private:
+	std::unordered_map<std::string, std::unique_ptr<BenchmarkTest>> m_TestsMap;
 	std::vector<std::unique_ptr<BenchmarkTest>> m_Tests;
 	bool m_UseMultiThreading;
 	int m_ThreadCount;
+	int m_IterationCount;
 	std::ofstream m_ReportFile;
 	SystemInfo m_SysInfo;
 
 	void logSystemInfo();
+	void createTestsMap();
 
 public:
-	CPUBenchmark(bool multiThreaded = true, int threads = BENCHMARK_THREAD_COUNT);
+	CPUBenchmark(int threads = BENCHMARK_THREAD_COUNT);
 	~CPUBenchmark();
 
 	void AddTest(std::unique_ptr<BenchmarkTest> test);
+	std::unique_ptr<BenchmarkTest> FindTest(const std::string& testname);
 	void RunAllTests();
 };
